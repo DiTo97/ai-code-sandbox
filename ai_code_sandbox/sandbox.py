@@ -9,6 +9,8 @@ import uuid
 from typing import Any
 
 import docker
+import docker.models.containers
+import docker.models.images
 
 
 class AICodeSandbox:
@@ -24,6 +26,9 @@ class AICodeSandbox:
         container (docker.models.containers.Container): The Docker container used as a sandbox.
         temp_image (docker.models.images.Image): Temporary Docker image created for the sandbox.
     """
+    client: docker.DockerClient
+    container: docker.models.containers.Container
+    temp_image: typing.Optional[docker.models.images.Image]
 
     def __init__(
         self, 
@@ -78,6 +83,8 @@ class AICodeSandbox:
             cpu_period=cpu_period,
             cpu_quota=cpu_quota
         )
+
+        assert self.container and self.container.status == "running"
 
     def write_file(self, filename: str, content: Any):
         """
@@ -153,13 +160,13 @@ class AICodeSandbox:
         
         code = textwrap.dedent(code)
 
-        env_str = " ".join(f"{k}={shlex.quote(v)}" for k, v in env_vars.items())
         escaped_code = code.replace("'", "'\"'\"'")
-        exec_command = f"env {env_str} python -c '{escaped_code}'"
+        exec_command = f"python -c '{escaped_code}'"
         
         exec_result = self.container.exec_run(
             ["sh", "-c", exec_command],
-            demux=True
+            demux=True,
+            environment=env_vars
         )
         
         if exec_result.exit_code != 0:
@@ -208,4 +215,10 @@ class AICodeSandbox:
 
     def __del__(self):
         """Ensure resources are cleaned up when the object is garbage collected."""
+        self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.close()

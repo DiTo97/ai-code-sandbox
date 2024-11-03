@@ -15,6 +15,21 @@ def test_sandbox_simple():
         sandbox.close()
 
 
+def test_sandbox_with_environment():
+    sandbox = AICodeSandbox(packages=[])
+    
+    try:
+        code = """
+        import os
+        print(os.environ["example"])
+        """
+        
+        output = sandbox.run_code(code, env_vars={"example": "1"})
+        assert output.strip() == "1"
+    finally:
+        sandbox.close()
+
+
 def test_sandbox_with_packages():
     sandbox = AICodeSandbox(packages=["requests"])
     
@@ -25,6 +40,21 @@ def test_sandbox_with_packages():
         
         output = sandbox.run_code(code)
         assert output == "No output"
+    finally:
+        sandbox.close()
+
+
+def test_sandbox_without_environment():
+    sandbox = AICodeSandbox(packages=[])
+    
+    try:
+        code = """
+        import os
+        print(os.environ["example"])
+        """
+        
+        output = sandbox.run_code(code)
+        assert "KeyError: 'example'" in output
     finally:
         sandbox.close()
 
