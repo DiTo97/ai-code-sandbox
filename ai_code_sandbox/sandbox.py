@@ -4,7 +4,9 @@ import shlex
 import tarfile
 import textwrap
 import time
+import typing
 import uuid
+from typing import Any
 
 import docker
 
@@ -23,7 +25,15 @@ class AICodeSandbox:
         temp_image (docker.models.images.Image): Temporary Docker image created for the sandbox.
     """
 
-    def __init__(self, custom_image=None, packages=None, network_mode="none", mem_limit="100m", cpu_period=100000, cpu_quota=50000):
+    def __init__(
+        self, 
+        custom_image: typing.Optional[str] = None, 
+        packages: typing.Optional[typing.List[str]] = None, 
+        network_mode: str = "none", 
+        mem_limit: str = "100m", 
+        cpu_period: int = 100000, 
+        cpu_quota: int = 50000
+    ):
         """
         Initialize the PythonSandbox.
 
@@ -40,7 +50,15 @@ class AICodeSandbox:
         self.temp_image = None
         self._setup_sandbox(custom_image, packages, network_mode, mem_limit, cpu_period, cpu_quota)
 
-    def _setup_sandbox(self, custom_image, packages, network_mode, mem_limit, cpu_period, cpu_quota):
+    def _setup_sandbox(
+        self, 
+        custom_image: typing.Optional[str],
+        packages: typing.Optional[typing.List[str]],
+        network_mode: str,
+        mem_limit: str, 
+        cpu_period: int, 
+        cpu_quota: int
+    ):
         """Set up the sandbox environment."""
         image_name = custom_image or "python:3.9-slim"
         
@@ -61,7 +79,7 @@ class AICodeSandbox:
             cpu_quota=cpu_quota
         )
 
-    def write_file(self, filename, content):
+    def write_file(self, filename: str, content: Any):
         """
         Write content to a file in the sandbox, creating directories if they don't exist.
 
@@ -101,7 +119,7 @@ class AICodeSandbox:
         if check_result.exit_code != 0:
             raise Exception(f"Failed to write file: {filename}")
 
-    def read_file(self, filename):
+    def read_file(self, filename: str):
         """
         Read content from a file in the sandbox.
 
@@ -119,7 +137,7 @@ class AICodeSandbox:
             raise Exception(f"Failed to read file: {result.output.decode('utf-8')}")
         return result.output.decode('utf-8')
 
-    def run_code(self, code, env_vars=None):
+    def run_code(self, code: str, env_vars: typing.Optional[typing.Dict[str, Any]] = None):
         """
         Execute Python code in the sandbox.
 
