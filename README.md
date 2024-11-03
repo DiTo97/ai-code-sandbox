@@ -40,7 +40,12 @@ To run AICodeSandbox, you need:
 
 2. Install the required Python packages:
    ```
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
+   ```
+
+3. Install the package:
+   ```
+   python -m pip install .
    ```
 
 ## Usage
