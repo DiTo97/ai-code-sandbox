@@ -1,4 +1,4 @@
-docker
+docker>7
+pytest>8
 setuptools
-twine
-pytest
+twine>5
