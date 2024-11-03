@@ -51,48 +51,48 @@ Here's a basic example of how to use AICodeSandbox:
 from ai_code_sandbox import AICodeSandbox
 
 
-# Create a sandbox with common AI/ML packages
-sandbox = AICodeSandbox(packages=["numpy", "pandas", "scikit-learn", "tensorflow"])
+code = """
+import numpy
+import pandas
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential
 
 
-try:
-    # Run some AI-generated code in the sandbox
-    code = """
-    import numpy as np
-    import pandas as pd
-    from sklearn.model_selection import train_test_split
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.layers import Dense
+X = numpy.random.rand(1000, 10)
+y = numpy.random.randint(0, 2, 1000)
 
-    # Generate some dummy data
-    X = np.random.rand(1000, 10)
-    y = np.random.randint(0, 2, 1000)
+print(X.shape, y.shape)
 
-    # Split the data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X_training, X_test, y_training, y_test = train_test_split(X, y, test_size=0.2)
 
-    # Create a simple neural network
-    model = Sequential([
-        Dense(64, activation='relu', input_shape=(10,)),
-        Dense(32, activation='relu'),
-        Dense(1, activation='sigmoid')
-    ])
+model = Sequential([
+    Dense(64, activation="relu", input_shape=(10,)),
+    Dense(32, activation="relu"),
+    Dense(1, activation="sigmoid")
+])
 
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
 
-    # Train the model
-    history = model.fit(X_train, y_train, epochs=10, validation_split=0.2, verbose=0)
+history = model.fit(X_training, y_training, epochs=10, validation_split=0.2, verbose=0)
 
-    # Evaluate the model
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
-    print(f"Test accuracy: {accuracy:.4f}")
-    """
-    result = sandbox.run_code(code)
-    print(result)
+loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
+print(f"test accuracy — {accuracy:.4f}")
+"""
 
-finally:
-    # Always close the sandbox to clean up resources
-    sandbox.close()
+
+if __name__ == "__main__":
+    sandbox = AICodeSandbox(
+        packages=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
+    )
+
+    try:        
+        output = sandbox.run_code(code)
+        print(output)
+    except Exception as e:
+        print(str(e))
+    finally:
+        sandbox.close()
 ```
 
 ## Running in Docker
