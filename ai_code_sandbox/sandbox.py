@@ -1,12 +1,13 @@
-import docker
-import shlex
-import uuid
-import textwrap
-import os
-import tarfile
 import io
-from io import BytesIO
+import os
+import shlex
+import tarfile
+import textwrap
 import time
+import uuid
+
+import docker
+
 
 class AICodeSandbox:
     """
@@ -45,7 +46,7 @@ class AICodeSandbox:
         
         if packages:
             dockerfile = f"FROM {image_name}\nRUN pip install {' '.join(packages)}"
-            dockerfile_obj = BytesIO(dockerfile.encode('utf-8'))
+            dockerfile_obj = io.BytesIO(dockerfile.encode('utf-8'))
             self.temp_image = self.client.images.build(fileobj=dockerfile_obj, rm=True)[0]
             image_name = self.temp_image.id
 

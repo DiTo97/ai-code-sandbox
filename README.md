@@ -50,8 +50,10 @@ Here's a basic example of how to use AICodeSandbox:
 ```python
 from ai_code_sandbox import AICodeSandbox
 
+
 # Create a sandbox with common AI/ML packages
 sandbox = AICodeSandbox(packages=["numpy", "pandas", "scikit-learn", "tensorflow"])
+
 
 try:
     # Run some AI-generated code in the sandbox
