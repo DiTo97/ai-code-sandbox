@@ -157,6 +157,7 @@ class AICodeSandbox:
         Args:
             code (str): Python code to execute.
             env_vars (dict, optional): Environment variables to set for the execution. Defaults to None.
+            timeout (int, optional): Execution timeout in seconds. Defaults to None, i.e., disabled.
 
         Returns:
             SandboxResponse: Output (stdout) and error messages (stderr) of the executed code.
