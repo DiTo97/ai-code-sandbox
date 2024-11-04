@@ -2,7 +2,7 @@ from ai_code_sandbox.sandbox import AICodeSandbox
 
 
 def test_sandbox():
-    with AICodeSandbox(packages=[]) as sandbox:
+    with AICodeSandbox(requirements=[]) as sandbox:
         code = """
         print("hello, I'm a sandbox")
         """
@@ -14,7 +14,7 @@ def test_sandbox():
 
 
 def test_sandbox_with_environment():
-    sandbox = AICodeSandbox(packages=[])
+    sandbox = AICodeSandbox(requirements=[])
     
     try:
         code = """
@@ -31,7 +31,7 @@ def test_sandbox_with_environment():
 
 
 def test_sandbox_with_requirements():
-    sandbox = AICodeSandbox(packages=["requests"])
+    sandbox = AICodeSandbox(requirements=["requests>2"])
     
     try:
         code = """
@@ -46,8 +46,24 @@ def test_sandbox_with_requirements():
         sandbox.close()
 
 
+def test_sandbox_with_requirements_compliance():
+    with AICodeSandbox(requirements=["requests>2"]) as sandbox:
+        output = sandbox.run_compliance(["requests>2"])
+
+        assert output.stdout == ""
+        assert output.stderr == ""
+
+
+def test_sandbox_free_requirements_compliance():
+    with AICodeSandbox(requirements=[]) as sandbox:
+        output = sandbox.run_compliance(["requests>2"])
+
+        assert output.stdout == ""
+        assert output.stderr == "SandboxRequirementsError: requirements-free sandbox"
+
+
 def test_sandbox_with_timeout():
-    sandbox = AICodeSandbox(packages=[])
+    sandbox = AICodeSandbox(requirements=[])
     
     try:
         code = """
@@ -64,7 +80,7 @@ def test_sandbox_with_timeout():
 
 
 def test_sandbox_without_environment():
-    sandbox = AICodeSandbox(packages=[])
+    sandbox = AICodeSandbox(requirements=[])
     
     try:
         code = """
@@ -81,7 +97,7 @@ def test_sandbox_without_environment():
 
 
 def test_sandbox_without_requirements():
-    sandbox = AICodeSandbox(packages=[])
+    sandbox = AICodeSandbox(requirements=[])
     
     try:
         code = """
@@ -95,9 +111,17 @@ def test_sandbox_without_requirements():
     finally:
         sandbox.close()
 
+
+def test_sandbox_without_requirements_compliance():
+    with AICodeSandbox(requirements=["requests>2"]) as sandbox:
+        output = sandbox.run_compliance(["requests<2", "numpy>2"])
+
+        assert output.stdout == ""
+        assert "SandboxRequirementsError" in output.stderr
+
     
 def test_sandbox_without_timeout():
-    sandbox = AICodeSandbox(packages=[])
+    sandbox = AICodeSandbox(requirements=[])
     
     try:
         code = """

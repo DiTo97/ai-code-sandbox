@@ -33,7 +33,7 @@ print(f"test accuracy — {accuracy:.4f}")
 
 if __name__ == "__main__":
     sandbox = AICodeSandbox(
-        packages=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
     )
 
     try:        

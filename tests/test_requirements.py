@@ -11,7 +11,7 @@ def test_compliance():
 def test_compliance_missing_requirements():
     requirements = ["numpy>2"]
     
-    with pytest.raises(SandboxRequirementsError) as excinfo:
+    with pytest.raises(SandboxRequirementsError):
         compliance(requirements)
 
 

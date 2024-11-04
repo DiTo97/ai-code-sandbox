@@ -14,6 +14,7 @@ import docker.models.images
 
 from ai_code_sandbox.error import SandboxError
 from ai_code_sandbox.model import SandboxResponse
+from ai_code_sandbox.requirements import compliance_script
 
 
 class AICodeSandbox:
@@ -31,12 +32,13 @@ class AICodeSandbox:
     """
     client: docker.DockerClient
     container: docker.models.containers.Container
+    requirements: typing.List[str]
     temp_image: typing.Optional[docker.models.images.Image]
 
     def __init__(
         self, 
         custom_image: typing.Optional[str] = None, 
-        packages: typing.Optional[typing.List[str]] = None, 
+        requirements: typing.Optional[typing.List[str]] = None, 
         network_mode: str = "none", 
         mem_limit: str = "100m", 
         cpu_period: int = 100000, 
@@ -47,21 +49,21 @@ class AICodeSandbox:
 
         Args:
             custom_image (str, optional): Name of a custom Docker image to use. Defaults to None.
-            packages (list, optional): List of Python packages to install in the sandbox. Defaults to None.
+            requirements (list, optional): List of Python packages to install in the sandbox. Defaults to None.
             network_mode (str, optional): Network mode to use for the sandbox. Defaults to "none".
             mem_limit (str, optional): Memory limit for the sandbox. Defaults to "100m".
             cpu_period (int, optional): CPU period for the sandbox. Defaults to 100000.
             cpu_quota (int, optional): CPU quota for the sandbox. Defaults to 50000.
         """
-        self.client = docker.from_env()
         self.container = None
         self.temp_image = None
-        self._setup_sandbox(custom_image, packages, network_mode, mem_limit, cpu_period, cpu_quota)
+        self.requirements = requirements or []
+        self.client = docker.from_env()
+        self._setup_sandbox(custom_image, network_mode, mem_limit, cpu_period, cpu_quota)
 
     def _setup_sandbox(
         self, 
         custom_image: typing.Optional[str],
-        packages: typing.Optional[typing.List[str]],
         network_mode: str,
         mem_limit: str, 
         cpu_period: int, 
@@ -70,8 +72,8 @@ class AICodeSandbox:
         """Set up the sandbox environment."""
         image_name = custom_image or "python:3.9-slim"
         
-        if packages:
-            dockerfile = f"FROM {image_name}\nRUN pip install {' '.join(packages)}"
+        if self.requirements:
+            dockerfile = f"FROM {image_name}\nRUN pip install {' '.join(self.requirements + ['packaging'])}"
             dockerfile_obj = io.BytesIO(dockerfile.encode('utf-8'))
             self.temp_image = self.client.images.build(fileobj=dockerfile_obj, rm=True)[0]
             image_name = self.temp_image.id
@@ -144,6 +146,25 @@ class AICodeSandbox:
         if result.exit_code != 0:
             raise SandboxError(f"Failed to read file: {result.output.decode('utf-8')}")
         return result.output.decode('utf-8')
+    
+    def run_compliance(self, requirements: typing.List[str]) -> SandboxResponse:
+        """
+        Check if the specified Python packages are available in the sandbox.
+
+        Args:
+            requirements (list): List of Python package requirements.
+
+        Raises:
+            SandboxRequirementsError: If any of the requirements are not met.
+        """
+        if not requirements:
+            return SandboxResponse(stdout="", stderr="")
+        
+        if not self.requirements:
+            return SandboxResponse(stdout="", stderr="SandboxRequirementsError: requirements-free sandbox")
+
+        output = self.run_code(compliance_script.format(requirements=requirements))
+        return output
 
     def run_code(
         self,

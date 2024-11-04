@@ -5,7 +5,7 @@ class SandboxError(Exception):
     """captures any sandbox-related errors"""
 
 
-class SandboxRequirementsError(SandboxError):
+class SandboxRequirementsError(Exception):
     """captures any sandbox requirements-related errors"""
     def __init__(self, requirements: typing.List[str]):
         message = (

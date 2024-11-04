@@ -88,7 +88,7 @@ print(f"test accuracy — {accuracy:.4f}")
 
 if __name__ == "__main__":
     sandbox = AICodeSandbox(
-        packages=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
     )
 
     try:        
@@ -147,12 +147,12 @@ services:
 
 ## API Reference
 
-### `AICodeSandbox(custom_image=None, packages=None)`
+### `AICodeSandbox(custom_image=None, requirements=None)`
 
 Create a new sandbox environment.
 
 - `custom_image` (optional): Name of a custom Docker image to use.
-- `packages` (optional): List of Python packages to install in the sandbox.
+- `requirements` (optional): List of Python packages to install in the sandbox.
 - `network_mode` (optional): Network mode to use for the sandbox. Defaults to "none".
 - `mem_limit` (optional): Memory limit for the sandbox. Defaults to "100m".
 - `cpu_period` (optional): CPU period for the sandbox. Defaults to 100000.
