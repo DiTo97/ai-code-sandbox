@@ -1,7 +1,7 @@
 from ai_code_sandbox.sandbox import AICodeSandbox
 
 
-def test_sandbox_simple():
+def test_sandbox():
     with AICodeSandbox(packages=[]) as sandbox:
         code = """
         print("hello, I'm a sandbox")
@@ -30,7 +30,7 @@ def test_sandbox_with_environment():
         sandbox.close()
 
 
-def test_sandbox_with_packages():
+def test_sandbox_with_requirements():
     sandbox = AICodeSandbox(packages=["requests"])
     
     try:
@@ -80,7 +80,7 @@ def test_sandbox_without_environment():
         sandbox.close()
 
 
-def test_sandbox_without_packages():
+def test_sandbox_without_requirements():
     sandbox = AICodeSandbox(packages=[])
     
     try:

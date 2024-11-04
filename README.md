@@ -45,7 +45,7 @@ To run AICodeSandbox, you need:
 
 3. Install the package:
    ```
-   python -m pip install .
+   python -m pip install -e .
    ```
 
 ## Usage
