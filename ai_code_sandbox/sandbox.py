@@ -12,6 +12,8 @@ import docker
 import docker.models.containers
 import docker.models.images
 
+from ai_code_sandbox.error import SandboxError
+
 
 class AICodeSandbox:
     """
@@ -84,8 +86,6 @@ class AICodeSandbox:
             cpu_quota=cpu_quota
         )
 
-        assert self.container and self.container.status == "running"
-
     def write_file(self, filename: str, content: Any):
         """
         Write content to a file in the sandbox, creating directories if they don't exist.
@@ -102,7 +102,7 @@ class AICodeSandbox:
             mkdir_command = f'mkdir -p {shlex.quote(directory)}'
             mkdir_result = self.container.exec_run(["sh", "-c", mkdir_command])
             if mkdir_result.exit_code != 0:
-                raise Exception(f"Failed to create directory: {mkdir_result.output.decode('utf-8')}")
+                raise SandboxError(f"Failed to create directory: {mkdir_result.output.decode('utf-8')}")
 
         tar_stream = io.BytesIO()
         with tarfile.open(fileobj=tar_stream, mode='w') as tar:
@@ -119,12 +119,12 @@ class AICodeSandbox:
         try:
             self.container.put_archive('/', tar_stream)
         except Exception as e:
-            raise Exception(f"Failed to write file: {str(e)}")
+            raise SandboxError(f"Failed to write file: {str(e)}")
 
         check_command = f'test -f {shlex.quote(filename)}'
         check_result = self.container.exec_run(["sh", "-c", check_command])
         if check_result.exit_code != 0:
-            raise Exception(f"Failed to write file: {filename}")
+            raise SandboxError(f"Failed to write file: {filename}")
 
     def read_file(self, filename: str):
         """
@@ -141,10 +141,15 @@ class AICodeSandbox:
         """
         result = self.container.exec_run(["cat", filename])
         if result.exit_code != 0:
-            raise Exception(f"Failed to read file: {result.output.decode('utf-8')}")
+            raise SandboxError(f"Failed to read file: {result.output.decode('utf-8')}")
         return result.output.decode('utf-8')
 
-    def run_code(self, code: str, env_vars: typing.Optional[typing.Dict[str, Any]] = None):
+    def run_code(
+        self,
+        code: str, 
+        env_vars: typing.Optional[typing.Dict[str, Any]] = None, 
+        timeout: typing.Optional[int] = None
+    ):
         """
         Execute Python code in the sandbox.
 
@@ -162,6 +167,9 @@ class AICodeSandbox:
 
         escaped_code = code.replace("'", "'\"'\"'")
         exec_command = f"python -c '{escaped_code}'"
+
+        if timeout:
+            exec_command = f"timeout {timeout}s {exec_command}"
         
         exec_result = self.container.exec_run(
             ["sh", "-c", exec_command],
@@ -169,10 +177,11 @@ class AICodeSandbox:
             environment=env_vars
         )
         
-        if exec_result.exit_code != 0:
-            return f"Error (exit code {exec_result.exit_code}): {exec_result.output[1].decode('utf-8')}"
-        
         stdout, stderr = exec_result.output
+
+        if exec_result.exit_code != 0:
+            return f"Error (exit code {exec_result.exit_code}): {stderr.decode('utf-8') if stderr else ''}"
+        
         if stdout is not None:
             return stdout.decode('utf-8')
         elif stderr is not None:
