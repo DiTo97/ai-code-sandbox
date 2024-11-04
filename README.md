@@ -93,7 +93,9 @@ if __name__ == "__main__":
 
     try:        
         output = sandbox.run_code(code)
-        print(output)
+
+        print(output.stdout)
+        print(output.stderr)
     except Exception as e:
         print(str(e))
     finally:
@@ -118,23 +120,21 @@ COPY README.md .
 COPY ai_code_sandbox/ ./ai_code_sandbox/
 COPY setup.py .
 
-RUN python3 -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
+RUN python3 -m venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN pip3 install -e .
 
-COPY example.py .
+COPY examples/ ./examples/
 
-CMD ["python3", "example.py"]
+CMD ["python3", "examples/classifcation.py"]
 ```
 
 The docker compose `docker-compose.yml`:
 
-```yml
-version: '3.8'
-
+```yaml
 services:
   ai_sandbox:
     build: .
@@ -164,6 +164,7 @@ Execute Python code in the sandbox.
 
 - `code`: String containing Python code to execute.
 - `env_vars` (optional): Dictionary of environment variables to set for the execution.
+- `timeout` (optional): Execution timeout in seconds.
 
 ### `sandbox.write_file(content, filename)`
 

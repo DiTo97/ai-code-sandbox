@@ -38,7 +38,9 @@ if __name__ == "__main__":
 
     try:        
         output = sandbox.run_code(code)
-        print(output)
+
+        print(output.stdout)
+        print(output.stderr)
     except Exception as e:
         print(str(e))
     finally:

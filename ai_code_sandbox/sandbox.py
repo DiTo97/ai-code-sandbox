@@ -13,6 +13,7 @@ import docker.models.containers
 import docker.models.images
 
 from ai_code_sandbox.error import SandboxError
+from ai_code_sandbox.model import SandboxResponse
 
 
 class AICodeSandbox:
@@ -149,7 +150,7 @@ class AICodeSandbox:
         code: str, 
         env_vars: typing.Optional[typing.Dict[str, Any]] = None, 
         timeout: typing.Optional[int] = None
-    ):
+    ) -> SandboxResponse:
         """
         Execute Python code in the sandbox.
 
@@ -158,7 +159,7 @@ class AICodeSandbox:
             env_vars (dict, optional): Environment variables to set for the execution. Defaults to None.
 
         Returns:
-            str: Output of the executed code or error message.
+            SandboxResponse: Output (stdout) and error messages (stderr) of the executed code.
         """
         if env_vars is None:
             env_vars = {}
@@ -177,17 +178,16 @@ class AICodeSandbox:
             environment=env_vars
         )
         
+        status = exec_result.exit_code
         stdout, stderr = exec_result.output
 
-        if exec_result.exit_code != 0:
-            return f"Error (exit code {exec_result.exit_code}): {stderr.decode('utf-8') if stderr else ''}"
-        
-        if stdout is not None:
-            return stdout.decode('utf-8')
-        elif stderr is not None:
-            return f"Error: {stderr.decode('utf-8')}"
-        else:
-            return "No output"
+        stdout = stdout.decode("utf-8") if stdout else ""
+        stderr = stderr.decode("utf-8") if stderr else ""
+
+        if status != 0:
+            stderr = f"(exit code {status})" + stderr
+
+        return SandboxResponse(stdout=stdout, stderr=stderr)
 
     def close(self):
         """
