@@ -60,7 +60,7 @@ code = """
 import numpy
 import pandas
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Sequential
 
 
@@ -72,7 +72,8 @@ print(X.shape, y.shape)
 X_training, X_test, y_training, y_test = train_test_split(X, y, test_size=0.2)
 
 model = Sequential([
-    Dense(64, activation="relu", input_shape=(10,)),
+    Input(shape=(10,)),
+    Dense(64, activation="relu"),
     Dense(32, activation="relu"),
     Dense(1, activation="sigmoid")
 ])
@@ -88,7 +89,7 @@ print(f"test accuracy — {accuracy:.4f}")
 
 if __name__ == "__main__":
     sandbox = AICodeSandbox(
-        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], config="medium"
     )
 
     try:        
@@ -147,18 +148,22 @@ services:
 
 ## API Reference
 
-### `AICodeSandbox(custom_image=None, requirements=None)`
+### `AICodeSandbox`
 
 Create a new sandbox environment.
 
 - `custom_image` (optional): Name of a custom Docker image to use.
 - `requirements` (optional): List of Python packages to install in the sandbox.
 - `network_mode` (optional): Network mode to use for the sandbox. Defaults to "none".
-- `mem_limit` (optional): Memory limit for the sandbox. Defaults to "100m".
-- `cpu_period` (optional): CPU period for the sandbox. Defaults to 100000.
-- `cpu_quota` (optional): CPU quota for the sandbox. Defaults to 50000.
+- `config` (optional): Ready-made specs configuration for the sandbox. Defaults to "small".
 
-### `sandbox.run_code(code, env_vars=None)`
+### `sandbox.run_compliance`
+
+Check if the specified Python packages are available in the sandbox.
+
+- `requirements`: List of Python package requirements.
+
+### `sandbox.run_code`
 
 Execute Python code in the sandbox.
 
@@ -166,18 +171,36 @@ Execute Python code in the sandbox.
 - `env_vars` (optional): Dictionary of environment variables to set for the execution.
 - `timeout` (optional): Execution timeout in seconds.
 
-### `sandbox.write_file(content, filename)`
+### `sandbox.write_file`
 
 Write content to a file in the sandbox.
 
 - `content`: String content to write to the file.
 - `filename`: Name of the file to create or overwrite.
 
-### `sandbox.read_file(filename)`
+### `sandbox.read_file`
 
 Read content from a file in the sandbox.
 
 - `filename`: Name of the file to read.
+
+### `sandbox.delete_file`
+
+Delete a file in the sandbox.
+
+- `filename`: Name of the file to delete.
+
+### `sandbox.write_dir`
+
+Create a directory in the sandbox, including any necessary parent directories.
+
+- `directory`: Path of the directory to create.
+
+### `sandbox.delete_dir`
+
+Delete a directory in the sandbox.
+
+- `directory`: Path of the directory to delete.
 
 ### `sandbox.close()`
 

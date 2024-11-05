@@ -12,6 +12,7 @@ import docker
 import docker.models.containers
 import docker.models.images
 
+from ai_code_sandbox.config import SandboxConfig, readymade
 from ai_code_sandbox.error import SandboxError
 from ai_code_sandbox.model import SandboxResponse
 from ai_code_sandbox.requirements import compliance_script
@@ -27,10 +28,13 @@ class AICodeSandbox:
 
     Attributes:
         client (docker.DockerClient): Docker client for managing containers and images.
+        config (SandboxConfig): Specs configuration for the sandbox.
         container (docker.models.containers.Container): The Docker container used as a sandbox.
+        requirements (list): List of Python packages to install in the sandbox.
         temp_image (docker.models.images.Image): Temporary Docker image created for the sandbox.
     """
     client: docker.DockerClient
+    config: SandboxConfig
     container: docker.models.containers.Container
     requirements: typing.List[str]
     temp_image: typing.Optional[docker.models.images.Image]
@@ -40,9 +44,7 @@ class AICodeSandbox:
         custom_image: typing.Optional[str] = None, 
         requirements: typing.Optional[typing.List[str]] = None, 
         network_mode: str = "none", 
-        mem_limit: str = "100m", 
-        cpu_period: int = 100000, 
-        cpu_quota: int = 50000
+        config: str = "small"
     ):
         """
         Initialize the PythonSandbox.
@@ -51,24 +53,16 @@ class AICodeSandbox:
             custom_image (str, optional): Name of a custom Docker image to use. Defaults to None.
             requirements (list, optional): List of Python packages to install in the sandbox. Defaults to None.
             network_mode (str, optional): Network mode to use for the sandbox. Defaults to "none".
-            mem_limit (str, optional): Memory limit for the sandbox. Defaults to "100m".
-            cpu_period (int, optional): CPU period for the sandbox. Defaults to 100000.
-            cpu_quota (int, optional): CPU quota for the sandbox. Defaults to 50000.
+            config (str, optional): Ready-made specs configuration for the sandbox. Defaults to "small".
         """
         self.container = None
         self.temp_image = None
         self.requirements = requirements or []
         self.client = docker.from_env()
-        self._setup_sandbox(custom_image, network_mode, mem_limit, cpu_period, cpu_quota)
+        self.config = readymade[config]
+        self._setup_sandbox(custom_image, network_mode)
 
-    def _setup_sandbox(
-        self, 
-        custom_image: typing.Optional[str],
-        network_mode: str,
-        mem_limit: str, 
-        cpu_period: int, 
-        cpu_quota: int
-    ):
+    def _setup_sandbox(self, custom_image: typing.Optional[str], network_mode: str):
         """Set up the sandbox environment."""
         image_name = custom_image or "python:3.9-slim"
         
@@ -84,9 +78,9 @@ class AICodeSandbox:
             command="tail -f /dev/null",
             detach=True,
             network_mode=network_mode,
-            mem_limit=mem_limit,
-            cpu_period=cpu_period,
-            cpu_quota=cpu_quota
+            mem_limit=self.config.mem_limit,
+            cpu_period=100000,
+            cpu_quota=self.config.cpu_quota
         )
 
     def write_file(self, filename: str, content: Any):
@@ -146,6 +140,51 @@ class AICodeSandbox:
         if result.exit_code != 0:
             raise SandboxError(f"Failed to read file: {result.output.decode('utf-8')}")
         return result.output.decode('utf-8')
+    
+    def delete_file(self, filename: str):
+        """
+        Delete a file in the sandbox.
+
+        Args:
+            filename (str): Name of the file to delete.
+
+        Raises:
+            SandboxError: If deleting the file fails.
+        """
+        delete_command = f'rm -f {shlex.quote(filename)}'
+        delete_result = self.container.exec_run(["sh", "-c", delete_command])
+        if delete_result.exit_code != 0:
+            raise SandboxError(f"Failed to delete file: {delete_result.output.decode('utf-8')}")
+
+    def write_dir(self, directory: str):
+        """
+        Create a directory in the sandbox, including any necessary parent directories.
+
+        Args:
+            directory (str): Path of the directory to create.
+
+        Raises:
+            SandboxError: If creating the directory fails.
+        """
+        mkdir_command = f'mkdir -p {shlex.quote(directory)}'
+        mkdir_result = self.container.exec_run(["sh", "-c", mkdir_command])
+        if mkdir_result.exit_code != 0:
+            raise SandboxError(f"Failed to create directory: {mkdir_result.output.decode('utf-8')}")
+        
+    def delete_dir(self, directory: str):
+        """
+        Delete a directory in the sandbox.
+
+        Args:
+            directory (str): Path of the directory to delete.
+
+        Raises:
+            SandboxError: If deleting the directory fails.
+        """
+        rmdir_command = f'rm -rf {shlex.quote(directory)}'
+        rmdir_result = self.container.exec_run(["sh", "-c", rmdir_command])
+        if rmdir_result.exit_code != 0:
+            raise SandboxError(f"Failed to delete directory: {rmdir_result.output.decode('utf-8')}")
     
     def run_compliance(self, requirements: typing.List[str]) -> SandboxResponse:
         """

@@ -5,7 +5,7 @@ code = """
 import numpy
 import pandas
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Sequential
 
 
@@ -17,7 +17,8 @@ print(X.shape, y.shape)
 X_training, X_test, y_training, y_test = train_test_split(X, y, test_size=0.2)
 
 model = Sequential([
-    Dense(64, activation="relu", input_shape=(10,)),
+    Input(shape=(10,)),
+    Dense(64, activation="relu"),
     Dense(32, activation="relu"),
     Dense(1, activation="sigmoid")
 ])
@@ -33,7 +34,7 @@ print(f"test accuracy — {accuracy:.4f}")
 
 if __name__ == "__main__":
     sandbox = AICodeSandbox(
-        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], mem_limit="1g"
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], config="medium"
     )
 
     try:        
