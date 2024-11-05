@@ -1,4 +1,13 @@
-from ai_code_sandbox.sandbox import AICodeSandbox
+import pytest
+
+from ai_code_sandbox.sandbox import AICodeSandbox, SandboxError
+
+
+@pytest.fixture(scope="function")
+def sandbox():
+    sandbox = AICodeSandbox()
+    yield sandbox
+    sandbox.close()
 
 
 def test_sandbox():
@@ -135,3 +144,49 @@ def test_sandbox_without_timeout():
         assert output.stderr == ""
     finally:
         sandbox.close()
+
+
+def test_write_and_read_file(sandbox: AICodeSandbox):
+    filename = "output.txt"
+    content = "hello, I'm a sandbox"
+    sandbox.write_file(filename, content)
+    assert content == sandbox.read_file(filename)
+
+
+def test_write_and_read_binary_file(sandbox: AICodeSandbox):
+    filename = "output.bin"
+    content = b"\x00\x01\x02\x03"
+    sandbox.write_file(filename, content)
+    assert content == sandbox.read_file(filename).encode("latin1")
+
+
+def test_delete_file(sandbox: AICodeSandbox):
+    filename = "output.txt"
+    content = ""
+    sandbox.write_file(filename, content)
+    sandbox.delete_file(filename)
+
+    with pytest.raises(SandboxError):
+        sandbox.read_file(filename)
+
+
+def test_write_dir(sandbox: AICodeSandbox):
+    directory = "output"
+    sandbox.write_dir(directory)
+    output = sandbox.container.exec_run(["sh", "-c", f"test -d {directory}"])
+    assert output.exit_code == 0
+
+
+def test_write_nested_dir(sandbox: AICodeSandbox):
+    directory = "output/nested"
+    sandbox.write_dir(directory)
+    output = sandbox.container.exec_run(["sh", "-c", f"test -d {directory}"])
+    assert output.exit_code == 0
+
+
+def test_delete_dir(sandbox: AICodeSandbox):
+    directory = "output"
+    sandbox.write_dir(directory)
+    sandbox.delete_dir(directory)
+    output = sandbox.container.exec_run(["sh", "-c", f"test -d {directory}"])
+    assert output.exit_code != 0
