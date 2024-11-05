@@ -29,5 +29,6 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "docker>7",
+        "psutil>6",
     ],
 )
