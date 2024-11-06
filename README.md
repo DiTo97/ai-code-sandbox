@@ -10,7 +10,7 @@ AICodeSandbox is a Python library designed to provide a secure and isolated envi
 - Execute code safely within the sandbox
 - Read and write files within the sandbox environment
 - Automatically clean up resources after use
-- Supports any Python image, but soon many more coding languages!
+- Supports any Python or Node.js image, but soon many more!
 
 ## Key Advantages
 
