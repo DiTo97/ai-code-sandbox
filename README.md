@@ -160,7 +160,7 @@ Create a new sandbox environment for a given coding language.
 - `network_mode` (optional): Network mode to use for the sandbox. Defaults to "none".
 - `config` (optional): Ready-made specs configuration for the sandbox. Defaults to "small".
 
-### `BaseCodegenSandbox.run_compliance`
+### `BaseCodegenSandbox.run_requirements_compliance`
 
 Check if the specified packages are available in the sandbox.
 
