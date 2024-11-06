@@ -351,5 +351,15 @@ def init_codegen_sandbox(
             network_mode=network_mode,
             config=config
         )
+    elif coding_language == "node":
+        from ai_code_sandbox.node.sandbox import NodejsCodegenSandbox
+
+        #
+        return NodejsCodegenSandbox(
+            custom_image_name=custom_image_name,
+            requirements=requirements,
+            network_mode=network_mode,
+            config=config
+        )
     
     raise ValueError(f"unsupported coding language: {coding_language}")
