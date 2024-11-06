@@ -156,7 +156,7 @@ Create a new sandbox environment for a given coding language.
 
 - `coding_language`: Coding language to use for the sandbox.
 - `custom_image` (optional): Name of a custom Docker image to use.
-- `requirements` (optional): List of Python packages to install in the sandbox.
+- `requirements` (optional): List of packages to install in the sandbox.
 - `network_mode` (optional): Network mode to use for the sandbox. Defaults to "none".
 - `config` (optional): Ready-made specs configuration for the sandbox. Defaults to "small".
 
