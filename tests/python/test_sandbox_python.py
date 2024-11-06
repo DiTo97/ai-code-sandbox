@@ -1,6 +1,4 @@
-import pytest
-
-from ai_code_sandbox import init_codegen_sandbox, SandboxError
+from ai_code_sandbox import init_codegen_sandbox
 
 
 def test_sandbox():
@@ -57,7 +55,7 @@ def test_sandbox_with_requirements_compliance():
 
 
 def test_sandbox_free_requirements_compliance():
-    with init_codegen_sandbox("python", requirements=[]) as sandbox:
+    with init_codegen_sandbox("python") as sandbox:
         output = sandbox.run_requirements_compliance(["requests>2"])
 
         assert output.stdout == ""
@@ -65,7 +63,7 @@ def test_sandbox_free_requirements_compliance():
 
 
 def test_sandbox_with_timeout():
-    sandbox = init_codegen_sandbox("python", requirements=[])
+    sandbox = init_codegen_sandbox("python")
     
     try:
         code = """
@@ -82,7 +80,7 @@ def test_sandbox_with_timeout():
 
 
 def test_sandbox_without_environment():
-    sandbox = init_codegen_sandbox("python", requirements=[])
+    sandbox = init_codegen_sandbox("python")
     
     try:
         code = """
@@ -99,7 +97,7 @@ def test_sandbox_without_environment():
 
 
 def test_sandbox_without_requirements():
-    sandbox = init_codegen_sandbox("python", requirements=[])
+    sandbox = init_codegen_sandbox("python")
     
     try:
         code = """

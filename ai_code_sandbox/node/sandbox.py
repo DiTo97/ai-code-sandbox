@@ -13,7 +13,7 @@ class NodejsCodegenSandbox(BaseCodegenSandbox):
         self._coding_language = "node"
 
     def _custom_image_dockerfile(self, image_name: str) -> str:
-        return f"FROM {image_name}\nRUN npm install {' '.join(self.requirements)}"
+        return f"FROM {image_name}\nWORKDIR /sandbox\nRUN npm install {' '.join(self.requirements + ['semver@^7.0.0'])}"
 
     def _compliance_script(self, requirements: typing.List[str]) -> str:
         return compliance_script.replace("{{requirements}}", str(requirements))

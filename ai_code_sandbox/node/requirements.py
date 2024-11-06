@@ -1,5 +1,6 @@
 compliance_script = """
 const { exec } = require('child_process');
+const semver = require('semver');
 
 
 class SandboxRequirementsError extends Error {
@@ -23,7 +24,7 @@ function _single_compliance(package) {
             try {
                 const version = JSON.parse(stdout).dependencies[requirement].version;
 
-                if (specifier && specifier !== version) {
+                if (specifier && !semver.satisfies(version, specifier)) {
                     resolve(`${package} (version conflict: available ${version})`);
                 } else {
                     resolve(null);
@@ -37,8 +38,8 @@ function _single_compliance(package) {
 
 
 async function compliance(requirements) {
-    const missing = await Promise.all(requirements.map(_single_compliance));
-    const missing = missing.filter(result => result !== null);
+    let missing = await Promise.all(requirements.map(_single_compliance));
+    missing = missing.filter(result => result !== null);
 
     if (missing.length > 0) {
         throw new SandboxRequirementsError(missing);

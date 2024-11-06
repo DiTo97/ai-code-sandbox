@@ -12,8 +12,8 @@ import docker
 import docker.models.containers
 import docker.models.images
 
-from ai_code_sandbox.config import SandboxConfig, readymade
-from ai_code_sandbox.error import SandboxError
+from ai_code_sandbox.config import SandboxConfig, available, readymade
+from ai_code_sandbox.error import SandboxError, SandboxConfigError
 from ai_code_sandbox.model import SandboxResponse
 
 
@@ -58,6 +58,9 @@ class BaseCodegenSandbox(ABC):
             network_mode (str, optional): Network mode to use for the sandbox. Defaults to "none".
             config (str, optional): Ready-made specs configuration for the sandbox. Defaults to "small".
         """
+        if config not in available:
+            raise SandboxConfigError(config)
+        
         self._init_image_config()
 
         self.container = None

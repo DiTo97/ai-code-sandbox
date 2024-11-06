@@ -1,5 +1,6 @@
 """module that standardizes the configuration of a sandbox"""
 
+import typing
 from dataclasses import dataclass
 from functools import lru_cache as cache
 
@@ -44,9 +45,10 @@ def _mem_limit_to_int(mem_limit: str) -> int:
 
 
 @cache(maxsize=1)
-def filtering_available() -> list[str]:
+def filtering_available() -> typing.Tuple[typing.Set[str], str]:
     """available sandbox config based on system resources"""
     available = []
+    max_available_config = "null"
 
     for naming, config in readymade.items():
         if _mem_limit_to_int(config.mem_limit) > _max_mem_limit:
@@ -57,7 +59,10 @@ def filtering_available() -> list[str]:
         
         available.append(naming)
 
-    return available
+    if available:
+        max_available_config = available[-1]
+
+    return set(available), max_available_config
 
 
-available = filtering_available()
+available, max_available_config = filtering_available()
