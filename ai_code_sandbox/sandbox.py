@@ -2,10 +2,10 @@ import io
 import os
 import shlex
 import tarfile
-import textwrap
 import time
 import typing
 import uuid
+from abc import ABC, abstractmethod
 from typing import Any
 
 import docker
@@ -15,66 +15,92 @@ import docker.models.images
 from ai_code_sandbox.config import SandboxConfig, readymade
 from ai_code_sandbox.error import SandboxError
 from ai_code_sandbox.model import SandboxResponse
-from ai_code_sandbox.requirements import compliance_script
 
 
-class AICodeSandbox:
+class BaseCodegenSandbox(ABC):
     """
-    A sandbox environment for executing Python code safely.
+    Base sandbox environment for executing code safely.
 
-    This class creates a Docker container with a Python environment,
-    optionally installs additional packages, and provides methods to
-    execute code, read and write files within the sandbox.
+    This class creates a Docker container with a suitable environment, optionally installs 
+    additional requirements, and provides methods to execute code, read, write 
+    and delete files, and write and delete directories within the sandbox.
 
     Attributes:
         client (docker.DockerClient): Docker client for managing containers and images.
         config (SandboxConfig): Specs configuration for the sandbox.
         container (docker.models.containers.Container): The Docker container used as a sandbox.
-        requirements (list): List of Python packages to install in the sandbox.
+        requirements (list): List of packages to install in the sandbox.
         temp_image (docker.models.images.Image): Temporary Docker image created for the sandbox.
+        _base_image_name (str): Name of the base Docker image to use for the sandbox.
+        _coding_language (str): Coding language used in the sandbox.
     """
     client: docker.DockerClient
     config: SandboxConfig
     container: docker.models.containers.Container
     requirements: typing.List[str]
     temp_image: typing.Optional[docker.models.images.Image]
+    _base_image_name: str
+    _coding_language: str
 
     def __init__(
         self, 
-        custom_image: typing.Optional[str] = None, 
+        custom_image_name: typing.Optional[str] = None, 
         requirements: typing.Optional[typing.List[str]] = None, 
         network_mode: str = "none", 
         config: str = "small"
     ):
         """
-        Initialize the PythonSandbox.
+        Initialize the sandbox.
 
         Args:
-            custom_image (str, optional): Name of a custom Docker image to use. Defaults to None.
-            requirements (list, optional): List of Python packages to install in the sandbox. Defaults to None.
+            custom_image_name (str, optional): Name of a custom Docker image to use. Defaults to None.
+            requirements (list, optional): List of packages to install in the sandbox. Defaults to None.
             network_mode (str, optional): Network mode to use for the sandbox. Defaults to "none".
             config (str, optional): Ready-made specs configuration for the sandbox. Defaults to "small".
         """
+        self._init_image_config()
+
         self.container = None
         self.temp_image = None
         self.requirements = requirements or []
         self.client = docker.from_env()
         self.config = readymade[config]
-        self._setup_sandbox(custom_image, network_mode)
 
-    def _setup_sandbox(self, custom_image: typing.Optional[str], network_mode: str):
+        self._setup_sandbox(custom_image_name, network_mode)
+
+    @abstractmethod
+    def _init_image_config(self):
+        """Initialize the necessary image config for the sandbox"""
+        ...
+
+    @abstractmethod
+    def _custom_image_dockerfile(self, image_name: str) -> str:
+        """Generate the Dockerfile for a custom image"""
+        ...
+
+    @abstractmethod
+    def _compliance_script(self, requirements: typing.List[str]) -> str:
+        """Generate the script to check for compliance of package requirements"""
+        ...
+
+    @abstractmethod
+    def _prepare_code_command(self, code: str) -> str:
+        """Prepare the shell command to execute the code"""
+        ...
+
+    def _setup_sandbox(self, custom_image_name: typing.Optional[str], network_mode: str):
         """Set up the sandbox environment."""
-        image_name = custom_image or "python:3.9-slim"
+        image_name = custom_image_name or self._base_image_name
         
         if self.requirements:
-            dockerfile = f"FROM {image_name}\nRUN pip install {' '.join(self.requirements + ['packaging'])}"
+            dockerfile = self._custom_image_dockerfile(image_name)
             dockerfile_obj = io.BytesIO(dockerfile.encode('utf-8'))
             self.temp_image = self.client.images.build(fileobj=dockerfile_obj, rm=True)[0]
             image_name = self.temp_image.id
 
         self.container = self.client.containers.run(
             image_name,
-            name=f"python_sandbox_{uuid.uuid4().hex[:8]}",
+            name=f"{self._coding_language}-sandbox-{uuid.uuid4().hex[:8]}",
             command="tail -f /dev/null",
             detach=True,
             network_mode=network_mode,
@@ -92,21 +118,21 @@ class AICodeSandbox:
             content (str or bytes): Content to write to the file.
 
         Raises:
-            Exception: If writing to the file fails.
+            SandboxError: If writing to the file fails.
         """
         directory = os.path.dirname(filename)
+
         if directory:
-            mkdir_command = f'mkdir -p {shlex.quote(directory)}'
-            mkdir_result = self.container.exec_run(["sh", "-c", mkdir_command])
-            if mkdir_result.exit_code != 0:
-                raise SandboxError(f"Failed to create directory: {mkdir_result.output.decode('utf-8')}")
+            self.write_dir(directory)
 
         tar_stream = io.BytesIO()
+
         with tarfile.open(fileobj=tar_stream, mode='w') as tar:
             if isinstance(content, str):
                 file_data = content.encode('utf-8')
             else:
                 file_data = content
+
             tarinfo = tarfile.TarInfo(name=filename)
             tarinfo.size = len(file_data)
             tar.addfile(tarinfo, io.BytesIO(file_data))
@@ -120,6 +146,7 @@ class AICodeSandbox:
 
         check_command = f'test -f {shlex.quote(filename)}'
         check_result = self.container.exec_run(["sh", "-c", check_command])
+
         if check_result.exit_code != 0:
             raise SandboxError(f"Failed to write file: {filename}")
 
@@ -134,11 +161,13 @@ class AICodeSandbox:
             str: Content of the file.
 
         Raises:
-            Exception: If reading the file fails.
+            SandboxError: If reading the file fails.
         """
         result = self.container.exec_run(["cat", filename])
+        
         if result.exit_code != 0:
             raise SandboxError(f"Failed to read file: {result.output.decode('utf-8')}")
+        
         return result.output.decode('utf-8')
     
     def delete_file(self, filename: str):
@@ -153,6 +182,7 @@ class AICodeSandbox:
         """
         delete_command = f'rm -f {shlex.quote(filename)}'
         delete_result = self.container.exec_run(["sh", "-c", delete_command])
+        
         if delete_result.exit_code != 0:
             raise SandboxError(f"Failed to delete file: {delete_result.output.decode('utf-8')}")
 
@@ -168,6 +198,7 @@ class AICodeSandbox:
         """
         mkdir_command = f'mkdir -p {shlex.quote(directory)}'
         mkdir_result = self.container.exec_run(["sh", "-c", mkdir_command])
+        
         if mkdir_result.exit_code != 0:
             raise SandboxError(f"Failed to create directory: {mkdir_result.output.decode('utf-8')}")
         
@@ -183,18 +214,16 @@ class AICodeSandbox:
         """
         rmdir_command = f'rm -rf {shlex.quote(directory)}'
         rmdir_result = self.container.exec_run(["sh", "-c", rmdir_command])
+        
         if rmdir_result.exit_code != 0:
             raise SandboxError(f"Failed to delete directory: {rmdir_result.output.decode('utf-8')}")
     
-    def run_compliance(self, requirements: typing.List[str]) -> SandboxResponse:
+    def run_requirements_compliance(self, requirements: typing.List[str]) -> SandboxResponse:
         """
-        Check if the specified Python packages are available in the sandbox.
+        Check if the specified packages are available in the sandbox.
 
         Args:
-            requirements (list): List of Python package requirements.
-
-        Raises:
-            SandboxRequirementsError: If any of the requirements are not met.
+            requirements (list): List of package requirements.
         """
         if not requirements:
             return SandboxResponse(stdout="", stderr="")
@@ -202,7 +231,7 @@ class AICodeSandbox:
         if not self.requirements:
             return SandboxResponse(stdout="", stderr="SandboxRequirementsError: requirements-free sandbox")
 
-        output = self.run_code(compliance_script.format(requirements=requirements))
+        output = self.run_code(self._compliance_script(requirements=requirements))
         return output
 
     def run_code(
@@ -212,10 +241,10 @@ class AICodeSandbox:
         timeout: typing.Optional[int] = None
     ) -> SandboxResponse:
         """
-        Execute Python code in the sandbox.
+        Execute code in the sandbox.
 
         Args:
-            code (str): Python code to execute.
+            code (str): Code to execute.
             env_vars (dict, optional): Environment variables to set for the execution. Defaults to None.
             timeout (int, optional): Execution timeout in seconds. Defaults to None, i.e., disabled.
 
@@ -225,10 +254,7 @@ class AICodeSandbox:
         if env_vars is None:
             env_vars = {}
         
-        code = textwrap.dedent(code)
-
-        escaped_code = code.replace("'", "'\"'\"'")
-        exec_command = f"python -c '{escaped_code}'"
+        exec_command = self._prepare_code_command(code)
 
         if timeout:
             exec_command = f"timeout {timeout}s {exec_command}"
@@ -292,3 +318,38 @@ class AICodeSandbox:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+
+def init_codegen_sandbox(
+    coding_language: str,
+    *,
+    custom_image_name: typing.Optional[str] = None, 
+    requirements: typing.Optional[typing.List[str]] = None, 
+    network_mode: str = "none", 
+    config: str = "small"
+) -> BaseCodegenSandbox:
+    """
+    Initialize the sandbox for a given coding language.
+
+    Args:
+        coding_language (str): Coding language to use for the sandbox.
+        custom_image_name (str, optional): Name of a custom Docker image to use. Defaults to None.
+        requirements (list, optional): List of packages to install in the sandbox. Defaults to None.
+        network_mode (str, optional): Network mode to use for the sandbox. Defaults to "none".
+        config (str, optional): Ready-made specs configuration for the sandbox. Defaults to "small".
+
+    Returns:
+        BaseCodegenSandbox: Instance of the codegen sandbox
+    """
+    if coding_language == "python":
+        from ai_code_sandbox.python.sandbox import PythonCodegenSandbox
+
+        #
+        return PythonCodegenSandbox(
+            custom_image_name=custom_image_name,
+            requirements=requirements,
+            network_mode=network_mode,
+            config=config
+        )
+    
+    raise ValueError(f"unsupported coding language: {coding_language}")

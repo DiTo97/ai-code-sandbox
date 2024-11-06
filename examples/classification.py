@@ -1,4 +1,4 @@
-from ai_code_sandbox import AICodeSandbox
+from ai_code_sandbox import init_codegen_sandbox
 
 
 code = """
@@ -33,8 +33,10 @@ print(f"test accuracy — {accuracy:.4f}")
 
 
 if __name__ == "__main__":
-    sandbox = AICodeSandbox(
-        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], config="medium"
+    sandbox = init_codegen_sandbox(
+        "python",
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"],
+        config="medium"
     )
 
     try:        

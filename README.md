@@ -4,18 +4,19 @@ AICodeSandbox is a Python library designed to provide a secure and isolated envi
 
 ## Features
 
-- Create isolated Python environments using Docker containers
+- Create isolated environments using Docker containers
 - Securely run AI-generated code or LLM outputs
-- Install custom Python packages in the sandbox
-- Execute Python code safely within the sandbox
+- Install custom packages in the sandbox
+- Execute code safely within the sandbox
 - Read and write files within the sandbox environment
 - Automatically clean up resources after use
+- Supports any Python image, but soon many more coding languages!
 
 ## Key Advantages
 
 - **Security**: Isolates AI-generated code execution, protecting your system from potentially harmful operations.
 - **Speed**: Optimized container creation and management for quick sandbox setup and execution.
-- **Customization**: Easily add specific Python packages or use custom Docker images to suit your AI and ML needs.
+- **Customization**: Easily add specific packages or use custom Docker images to suit your AI and ML needs.
 - **Resource Control**: Limit CPU and memory usage to prevent resource abuse.
 - **Flexibility**: Run various types of AI models and code snippets without worrying about system integrity.
 - **Easy Clean-up**: Automatic resource management ensures no leftover containers or images.
@@ -26,7 +27,6 @@ To run AICodeSandbox, you need:
 
 - Python 3.7+
 - Docker installed and running on your system
-- `docker` Python package
 - Sufficient permissions to create and manage Docker containers
 - Internet connection (for initial package downloads)
 
@@ -53,7 +53,7 @@ To run AICodeSandbox, you need:
 Here's a basic example of how to use AICodeSandbox:
 
 ```python
-from ai_code_sandbox import AICodeSandbox
+from ai_code_sandbox import init_codegen_sandbox
 
 
 code = """
@@ -88,8 +88,10 @@ print(f"test accuracy — {accuracy:.4f}")
 
 
 if __name__ == "__main__":
-    sandbox = AICodeSandbox(
-        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"], config="medium"
+    sandbox = init_codegen_sandbox(
+        "python",
+        requirements=["numpy", "pandas", "scikit-learn", "tensorflow"],
+        config="medium"
     )
 
     try:        
@@ -148,61 +150,62 @@ services:
 
 ## API Reference
 
-### `AICodeSandbox`
+### `init_codegen_sandbox`
 
-Create a new sandbox environment.
+Create a new sandbox environment for a given coding language.
 
+- `coding_language`: Coding language to use for the sandbox.
 - `custom_image` (optional): Name of a custom Docker image to use.
 - `requirements` (optional): List of Python packages to install in the sandbox.
 - `network_mode` (optional): Network mode to use for the sandbox. Defaults to "none".
 - `config` (optional): Ready-made specs configuration for the sandbox. Defaults to "small".
 
-### `sandbox.run_compliance`
+### `BaseCodegenSandbox.run_compliance`
 
-Check if the specified Python packages are available in the sandbox.
+Check if the specified packages are available in the sandbox.
 
-- `requirements`: List of Python package requirements.
+- `requirements`: List of package requirements.
 
-### `sandbox.run_code`
+### `BaseCodegenSandbox.run_code`
 
-Execute Python code in the sandbox.
+Execute code in the sandbox.
 
-- `code`: String containing Python code to execute.
+- `code`: String containing code to execute.
 - `env_vars` (optional): Dictionary of environment variables to set for the execution.
 - `timeout` (optional): Execution timeout in seconds.
 
-### `sandbox.write_file`
+### `BaseCodegenSandbox.write_file`
 
 Write content to a file in the sandbox.
 
 - `content`: String content to write to the file.
 - `filename`: Name of the file to create or overwrite.
 
-### `sandbox.read_file`
+### `BaseCodegenSandbox.read_file`
 
 Read content from a file in the sandbox.
 
 - `filename`: Name of the file to read.
 
-### `sandbox.delete_file`
+### `BaseCodegenSandbox.delete_file`
 
 Delete a file in the sandbox.
 
 - `filename`: Name of the file to delete.
 
-### `sandbox.write_dir`
+### `BaseCodegenSandbox.write_dir`
 
 Create a directory in the sandbox, including any necessary parent directories.
 
 - `directory`: Path of the directory to create.
 
-### `sandbox.delete_dir`
+### `BaseCodegenSandbox.delete_dir`
 
 Delete a directory in the sandbox.
 
 - `directory`: Path of the directory to delete.
 
-### `sandbox.close()`
+### `BaseCodegenSandbox.close()`
 
 Remove all resources created by the sandbox.
 

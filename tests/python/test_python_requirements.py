@@ -1,7 +1,7 @@
 import pytest
 
 from ai_code_sandbox.error import SandboxRequirementsError 
-from ai_code_sandbox.requirements import compliance
+from ai_code_sandbox.python.requirements import compliance
 
 
 def test_compliance():
