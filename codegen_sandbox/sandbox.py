@@ -12,9 +12,9 @@ import docker
 import docker.models.containers
 import docker.models.images
 
-from ai_code_sandbox.config import SandboxConfig, available, readymade
-from ai_code_sandbox.error import SandboxError, SandboxConfigError
-from ai_code_sandbox.model import SandboxResponse
+from codegen_sandbox.config import SandboxConfig, available, readymade
+from codegen_sandbox.error import SandboxError, SandboxConfigError
+from codegen_sandbox.model import SandboxResponse
 
 
 class BaseCodegenSandbox(ABC):
@@ -345,7 +345,7 @@ def init_codegen_sandbox(
         BaseCodegenSandbox: Instance of the codegen sandbox
     """
     if coding_language == "python":
-        from ai_code_sandbox.python.sandbox import PythonCodegenSandbox
+        from codegen_sandbox.python.sandbox import PythonCodegenSandbox
 
         #
         return PythonCodegenSandbox(
@@ -355,7 +355,7 @@ def init_codegen_sandbox(
             config=config
         )
     elif coding_language == "node":
-        from ai_code_sandbox.node.sandbox import NodejsCodegenSandbox
+        from codegen_sandbox.node.sandbox import NodejsCodegenSandbox
 
         #
         return NodejsCodegenSandbox(

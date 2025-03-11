@@ -1,4 +1,4 @@
-from ai_code_sandbox import init_codegen_sandbox
+from codegen_sandbox import init_codegen_sandbox
 
 
 def test_sandbox():

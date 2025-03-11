@@ -3,14 +3,14 @@
 build
 dist
 
+# caching
+__pycache__
+.pytest_cache
+
 # IDE
 .idea/
 .vscode/*
 !.vscode/launch.json
-
-# caching
-__pycache__
-.pytest_cache
 
 # virtual environment
 .venv
