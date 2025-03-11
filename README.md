@@ -44,21 +44,9 @@ To run Codegen Sandbox, you need:
 
 ## Installation
 
-1. Clone this repository:
-   ```
-   git clone https://github.com/typper-io/ai-code-sandbox.git
-   cd ai-code-sandbox
-   ```
-
-2. Install the required Python packages:
-   ```
-   python -m pip install -r requirements.txt
-   ```
-
-3. Install the package:
-   ```
-   python -m pip install -e .
-   ```
+```shell
+python -m pip install -e "git+https://github.com/DiTo97/codegen-sandbox.git"
+```
 
 ## Usage
 
