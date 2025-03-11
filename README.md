@@ -1,6 +1,18 @@
-# AICodeSandbox
+# Codegen Sandbox
 
-AICodeSandbox is a Python library designed to provide a secure and isolated environment for executing AI and machine learning code, particularly for Language Models (LLMs). It leverages Docker containers to create sandboxes, enabling safe execution of potentially untrusted AI-generated code.
+> [!warning]
+> The repository is being maintained independently from [AICodeSanbox](https://github.com/typper-io/ai-code-sandbox), its original fork.
+
+Codegen Sandbox is a Python library designed to provide a secure and isolated environment for executing AI and machine learning code, particularly for Language Models (LLMs). It leverages Docker containers to create sandboxes, enabling safe execution of potentially untrusted AI-generated code.
+
+> [!note]
+> At the moment, the library supports Node.js and Python sandboxes.
+
+## TODOs
+
+- [ ] better base Docker images
+- [ ] reference sandbox agent
+- [ ] sandbox as a tool/service
 
 ## Features
 
