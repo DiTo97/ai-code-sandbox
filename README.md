@@ -10,7 +10,7 @@ Codegen Sandbox is a Python library designed to provide a secure and isolated en
 
 ## TODOs
 
-- [ ] better base Docker images
+- [ ] [better base Docker images](https://huggingface.co/docs/smolagents/v1.10.0/en/tutorials/secure_code_execution)
 - [ ] reference sandbox agent
 - [ ] sandbox as a tool/service
 
