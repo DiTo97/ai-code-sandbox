@@ -1,8 +1,16 @@
-venv
-Dockerfile
+# build
 *.egg-info
+build
 dist
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/launch.json
+
+# caching
 __pycache__
-example.py
 .pytest_cache
-docker-compose.yml
+
+# virtual environment
+.venv

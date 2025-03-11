@@ -1,14 +1,16 @@
 from setuptools import setup, find_packages
 
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+
 setup(
     name="ai-code-sandbox",
-    version="0.2.0",
+    version="0.2.1",
     author="Typper, Corp.",
     author_email="contact@typper.io",
-    description="Secure Python sandbox for AI/ML code execution using Docker. Run LLM outputs safely.",
+    description="Secure sandbox for AI/ML code execution using Docker. Run LLM outputs safely.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/typper-io/ai-code-sandbox",
@@ -26,6 +28,7 @@ setup(
     ],
     python_requires=">=3.7",
     install_requires=[
-        "docker",
+        "docker>7",
+        "psutil>6",
     ],
 )
