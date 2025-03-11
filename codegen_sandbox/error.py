@@ -1,6 +1,6 @@
 import typing
 
-from ai_code_sandbox.config import max_available_config
+from codegen_sandbox.config import max_available_config
 
 
 class SandboxError(Exception):

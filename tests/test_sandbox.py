@@ -1,6 +1,6 @@
 import pytest
 
-from ai_code_sandbox import init_codegen_sandbox, BaseCodegenSandbox, SandboxError
+from codegen_sandbox import init_codegen_sandbox, BaseCodegenSandbox, SandboxError
 
 
 @pytest.fixture(scope="function")

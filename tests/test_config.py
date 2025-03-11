@@ -1,6 +1,6 @@
 import pytest
 
-from ai_code_sandbox.config import (
+from codegen_sandbox.config import (
     _mem_limit_to_int, available, readymade, _max_mem_limit, _max_cpu_quota
 )
 

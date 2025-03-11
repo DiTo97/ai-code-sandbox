@@ -35,7 +35,7 @@ Codegen Sandbox is a Python library designed to provide a secure and isolated en
 
 ## Requirements
 
-To run AICodeSandbox, you need:
+To run Codegen Sandbox, you need:
 
 - Python 3.7+
 - Docker installed and running on your system
@@ -62,10 +62,10 @@ To run AICodeSandbox, you need:
 
 ## Usage
 
-Here's a basic example of how to use AICodeSandbox:
+Here's a basic example of how to use Codegen Sandbox:
 
 ```python
-from ai_code_sandbox import init_codegen_sandbox
+from codegen_sandbox import init_codegen_sandbox
 
 
 code = """
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
 ## Running in Docker
 
-You can also run AICodeSandbox inside a Docker container. This setup uses Docker-in-Docker (DinD) to allow the AICodeSandbox to create and manage Docker containers from within a Docker container.
+You can also run Codegen Sandbox inside a Docker container. This setup uses Docker-in-Docker (DinD) to allow the Codegen Sandbox to create and manage Docker containers from within a Docker container.
 
 Example `Dockerfile`:
 
@@ -128,30 +128,24 @@ FROM docker:dind
 
 RUN apk add --no-cache python3 py3-pip
 
-WORKDIR /app
+WORKDIR /service
 
-COPY requirements.txt .
-COPY README.md .
-COPY ai_code_sandbox/ ./ai_code_sandbox/
-COPY setup.py .
+COPY . ./codegen-sandbox
 
-RUN python3 -m venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
+RUN python3 -m venv /service/.venv
+ENV PATH="/service/.venv/bin:$PATH"
 
 RUN pip3 install --upgrade pip
-RUN pip3 install -r requirements.txt
-RUN pip3 install -e .
+RUN pip3 install -e codegen-sandbox
 
-COPY examples/ ./examples/
-
-CMD ["python3", "examples/classifcation.py"]
+CMD ["python3", "codegen-sandbox/examples/classifcation.py"]
 ```
 
 The docker compose `docker-compose.yml`:
 
 ```yaml
 services:
-  ai_sandbox:
+  sandbox:
     build: .
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -223,11 +217,19 @@ Remove all resources created by the sandbox.
 
 ## Security Considerations
 
-While AICodeSandbox provides a secure environment for running AI-generated code, it's important to note that no sandbox solution is completely foolproof. Users should still exercise caution and implement additional security measures when dealing with potentially malicious or untrusted AI-generated code.
+While Codegen Sandbox provides a secure environment for running AI-generated code, it's important to note that no sandbox solution is completely foolproof. Users should still exercise caution and implement additional security measures when dealing with potentially malicious or untrusted AI-generated code.
 
 ## Contributing
 
-Contributions to AICodeSandbox are welcome! Please feel free to submit a Pull Request.
+Contributions to Codegen Sandbox are welcome! Please feel free to submit a pull request.
+
+```shell
+python -m pip install pytest
+```
+
+```shell
+python -m pip install -e .
+```
 
 ## License
 

@@ -1,8 +1,8 @@
 import textwrap
 import typing
 
-from ai_code_sandbox.node.requirements import compliance_script
-from ai_code_sandbox.sandbox import BaseCodegenSandbox
+from codegen_sandbox.node.requirements import compliance_script
+from codegen_sandbox.sandbox import BaseCodegenSandbox
 
 
 class NodejsCodegenSandbox(BaseCodegenSandbox):
